@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 
 import CharacterCard from "@/components/CharacterCard";
+import { Button } from "@/components/ui/button";
 import { getCharacters } from "@/services/dragonballApi";
 
 function Entities() {
   const [characters, setCharacters] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedRace, setSelectedRace] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -24,11 +26,29 @@ function Entities() {
     loadCharacters();
   }, []);
 
+  const raceOptions = useMemo(() => {
+    const races = characters
+      .map((character) => character.race)
+      .filter(Boolean)
+      .filter((race, index, array) => array.indexOf(race) === index)
+      .sort((a, b) => a.localeCompare(b));
+
+    return ["All", ...races];
+  }, [characters]);
+
   const filteredCharacters = useMemo(() => {
-    return characters.filter((character) =>
-      character.name.toLowerCase().includes(search.toLowerCase().trim()),
-    );
-  }, [characters, search]);
+    const normalizedSearch = search.toLowerCase().trim();
+
+    return characters.filter((character) => {
+      const matchesName = character.name
+        .toLowerCase()
+        .includes(normalizedSearch);
+      const matchesRace =
+        selectedRace === "All" || character.race === selectedRace;
+
+      return matchesName && matchesRace;
+    });
+  }, [characters, search, selectedRace]);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -41,7 +61,8 @@ function Entities() {
             Listado completo de personajes
           </h1>
           <p className="mt-2 text-slate-600">
-            Personajes obtenidos: {characters.length}
+            Personajes obtenidos: {characters.length} | Mostrando:{" "}
+            {filteredCharacters.length}
           </p>
         </div>
 
@@ -60,6 +81,32 @@ function Entities() {
         </div>
       </div>
 
+      {!loading && !error && (
+        <div className="mb-8">
+          <p className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+            Filtrar por raza
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {raceOptions.map((race) => (
+              <Button
+                key={race}
+                type="button"
+                size="sm"
+                variant={selectedRace === race ? "default" : "outline"}
+                onClick={() => setSelectedRace(race)}
+                className={
+                  selectedRace === race
+                    ? "bg-orange-500 text-white hover:bg-orange-600"
+                    : "border-orange-200 bg-white text-slate-700 hover:bg-orange-50 hover:text-orange-700"
+                }
+              >
+                {race === "All" ? "Todas" : race}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="flex min-h-60 items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-700" />
@@ -74,7 +121,7 @@ function Entities() {
 
       {!loading && !error && filteredCharacters.length === 0 && (
         <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">
-          No se encontraron personajes con ese nombre.
+          No se encontraron personajes con esos filtros.
         </div>
       )}
 
