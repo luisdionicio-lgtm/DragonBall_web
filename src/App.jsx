@@ -32,7 +32,7 @@ function App() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
-        Hecho con React, Vite, Axios, React Router DOM y Shadcn UI.
+        Hecho por Luis Dionicio - C24
       </footer>
     </div>
   );
